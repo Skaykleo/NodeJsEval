@@ -31,3 +31,7 @@ jobs:
       # 3. Installer les dépendances
       - name: Install dependencies
         run: npm ci
+
+      # 4. Lancer les tests
+      - name: Lancer les test
+        run: npm run test:run
