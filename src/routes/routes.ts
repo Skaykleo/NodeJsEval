@@ -18,6 +18,16 @@ routes.get('/cities/:zipCode', (_req, res) => {
     res.json(city);
 })
 
+routes.delete('/cities/:zipCode', (_req, res) => {
+    const zipCode = _req.params.zipCode;
+    const cityIndex = cities.findIndex(c => c.zipCode === zipCode);
+    if (cityIndex === -1) {
+        return res.status(404).json({ error: 'Ville non trouvée' });
+    }
+    cities.splice(cityIndex, 1);
+    res.status(204).send();
+})
+
 export default routes;
 
 
