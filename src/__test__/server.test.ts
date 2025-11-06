@@ -47,6 +47,17 @@ describe(app, () => {
 
         expect(response.status).toBe(404);
     })
+    it("Devrait mettre à jour une ville par son code postal", async () => {
+        const response = await request(app).put("/cities/13000").send({ name: "Marseille Updated" });
+
+        expect(response.status).toBe(200);
+        expect(response.body).toHaveProperty("name", "Marseille Updated");
+    })
+    it("404 | Devrait retourner une erreur si mise à jour avec mauvais code postal", async () => {
+        const response = await request(app).put("/cities/99999").send({ name: "Ville Inconnue" });
+
+        expect(response.status).toBe(404);
+    })
 
 });
 

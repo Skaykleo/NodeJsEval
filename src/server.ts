@@ -7,9 +7,9 @@ app.use(express.json());
 app.use('/', routes);
 
 export const cities: City[] = [
-    { name: "Paris", zipCode: "75000" },
-    { name: "Lyon", zipCode: "69000" },
-    { name: "Marseille", zipCode: "13000" },
+    { zipCode: "75000", name: "Paris" },
+    { zipCode: "69000", name: "Lyon" },
+    { zipCode: "13000", name: "Marseille" }
 ];
 
 app.get('/', (_req, res) => {

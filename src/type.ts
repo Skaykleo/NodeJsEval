@@ -1,8 +1,8 @@
 type Weather = "pluie" | "beau" | "neige";
 
 interface City {
-    name: string;
     zipCode: string;
+    name: string;
 }
 
 interface WeatherBulletin {
