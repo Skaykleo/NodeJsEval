@@ -58,6 +58,23 @@ describe(app, () => {
 
         expect(response.status).toBe(404);
     })
+    it ("Devrait retourner le bulletin météo d'une ville", async () => {
+        const response = await request(app).get("/cities/75000/weather");
+
+        expect(response.status).toBe(200);
+        expect(response.body).toHaveProperty("weather", "pluie");
+    })
+    it("404 | Devrait retourner une erreur si bulletin météo avec mauvais code postal", async () => {
+        const response = await request(app).get("/cities/99999/weather");
+
+        expect(response.status).toBe(404);
+    })
+    it ("404 | Devrait retourner une erreur si bulletin météo introuvable", async () => {
+        const response = await request(app).get("/cities/31000/weather");
+
+        expect(response.status).toBe(404);
+    })
+
 
 });
 

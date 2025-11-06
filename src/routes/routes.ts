@@ -1,5 +1,5 @@
 import express from 'express';
-import { cities } from '../server';
+import { cities, weather } from '../server';
 
 const routes = express.Router();
 
@@ -39,6 +39,25 @@ routes.put('/cities/:zipCode', (_req, res) => {
         city.name = name;
     }
     res.json(city);
+})
+
+routes.get('/cities/:zipCode/weather', (_req, res) => {
+    const zipCode = _req.params.zipCode;
+    const city = cities.find(c => c.zipCode === zipCode);
+    if (!city) {
+        return res.status(404).json({ error: 'Ville non trouvée' });
+    }
+    const weatherBulletin = weather.find(w => w.zipCode === zipCode);
+    if (!weatherBulletin) {
+        return res.status(404).json({ error: 'Bulletin météo non trouvé pour cette ville' });
+    }
+    res.json(
+        {
+            zipCode: zipCode,
+            name: city.name,
+            weather: weatherBulletin.weather
+        }
+    );
 })
 
 export default routes;
