@@ -16,5 +16,16 @@ describe(app, () => {
         expect(response.status).toBe(200);
         expect(Array.isArray(response.body)).toBe(true);
     })
+    it("Devrait retourner une ville par son code postal", async () => {
+        const response = await request(app).get("/cities/75000");
+
+        expect(response.status).toBe(200);
+        expect(response.body).toHaveProperty("name", "Paris");
+    })
+    it("404 | Devrait retourner une erreur si mauvais code postal", async () => {
+        const response = await request(app).get("/cities/99999");
+
+        expect(response.status).toBe(404);
+    })
 });
 
