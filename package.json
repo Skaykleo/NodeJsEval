@@ -12,12 +12,14 @@
   },
   "license": "ISC",
   "author": "Léo, Loïc et Dimitri",
-  "type": "commonjs",
+  "type": "module",
   "main": "index.ts",
   "scripts": {
     "dev": "ts-node src/index.ts",
     "test": "vitest",
-    "test:run": "vitest run"
+    "test:run": "vitest run",
+    "lint": "eslint src/**/*.ts",
+    "lint:fix": "eslint src/**/*.ts --fix"
   },
   "dependencies": {
     "express": "^5.1.0",
@@ -29,6 +31,9 @@
     "@types/express": "^5.0.5",
     "@types/node": "^24.10.0",
     "@types/supertest": "^6.0.3",
+    "@typescript-eslint/eslint-plugin": "^8.46.3",
+    "@typescript-eslint/parser": "^8.46.3",
+    "eslint": "^9.39.1",
     "supertest": "^7.1.4",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3",

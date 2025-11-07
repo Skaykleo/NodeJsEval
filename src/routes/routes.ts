@@ -93,8 +93,8 @@ routes.get("/cities/:zipCode/weather", (_req, res) => {
   const maxCount = Math.max(...Object.values(weatherCount));
 
   const mostCommonWeathers = Object.entries(weatherCount)
-    .filter(([_, count]) => count === maxCount)
-    .map(([weather, _]) => weather);
+    .filter((entry) => entry[1] === maxCount)
+    .map((entry) => entry[0]);
 
   // Ordre de priorité optimiste : beau > neige > pluie
   const priorityOrder = ["beau", "neige", "pluie"];
