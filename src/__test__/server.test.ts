@@ -240,4 +240,83 @@ describe(app, () => {
 
     expect(response.status).toBe(404);
   });
+
+  it("405 | Devrait retourner une erreur si méthode PATCH sur /cities", async () => {
+    const response = await request(app).patch("/cities");
+
+    expect(response.status).toBe(405);
+    expect(response.body).toHaveProperty("error", "Méthode non autorisée");
+  });
+
+  it("405 | Devrait retourner une erreur si méthode POST sur /cities/:zipCode", async () => {
+    const response = await request(app)
+      .post("/cities/75000")
+      .send({ name: "Test" });
+
+    expect(response.status).toBe(405);
+    expect(response.body).toHaveProperty("error", "Méthode non autorisée");
+  });
+
+  it("405 | Devrait retourner une erreur si méthode PATCH sur /cities/:zipCode", async () => {
+    const response = await request(app)
+      .patch("/cities/75000")
+      .send({ name: "Test" });
+
+    expect(response.status).toBe(405);
+    expect(response.body).toHaveProperty("error", "Méthode non autorisée");
+  });
+
+  it("405 | Devrait retourner une erreur si méthode PUT sur /weather", async () => {
+    const response = await request(app).put("/weather").send({ test: "data" });
+
+    expect(response.status).toBe(405);
+    expect(response.body).toHaveProperty("error", "Méthode non autorisée");
+  });
+
+  it("405 | Devrait retourner une erreur si méthode POST sur /weather/:id", async () => {
+    const response = await request(app)
+      .post("/weather/1")
+      .send({ weather: "beau" });
+
+    expect(response.status).toBe(405);
+    expect(response.body).toHaveProperty("error", "Méthode non autorisée");
+  });
+
+  it("405 | Devrait retourner une erreur si méthode PUT sur /weather/:id", async () => {
+    const response = await request(app)
+      .put("/weather/1")
+      .send({ weather: "neige" });
+
+    expect(response.status).toBe(405);
+    expect(response.body).toHaveProperty("error", "Méthode non autorisée");
+  });
+
+  it("405 | Devrait retourner une erreur si méthode PATCH sur /weather/:id", async () => {
+    const response = await request(app)
+      .patch("/weather/1")
+      .send({ weather: "beau" });
+
+    expect(response.status).toBe(405);
+    expect(response.body).toHaveProperty("error", "Méthode non autorisée");
+  });
+
+  it("409 | Devrait retourner une erreur si création d'un bulletin météo identique existant", async () => {
+    const response = await request(app)
+      .post("/cities/75000/weather")
+      .send({ weather: "pluie" });
+
+    expect(response.status).toBe(409);
+    expect(response.body).toHaveProperty("error");
+    expect(response.body.error).toContain("existe déjà");
+  });
+
+  it("409 | Devrait retourner une erreur si création d'un second bulletin identique pour Lyon", async () => {
+    const response = await request(app)
+      .post("/cities/69000/weather")
+      .send({ weather: "beau" });
+
+    expect(response.status).toBe(409);
+    expect(response.body).toHaveProperty("error");
+    expect(response.body.error).toContain("existe déjà");
+  });
 });

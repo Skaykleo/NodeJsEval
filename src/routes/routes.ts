@@ -89,6 +89,7 @@ routes.get("/cities/:zipCode/weather", (_req, res) => {
     weatherCount[bulletin.weather] = (weatherCount[bulletin.weather] || 0) + 1;
   }
 
+  // Trouver le nombre maximum d'occurrences
   const maxCount = Math.max(...Object.values(weatherCount));
 
   const mostCommonWeathers = Object.entries(weatherCount)
@@ -137,6 +138,20 @@ routes.post("/cities/:zipCode/weather", (_req, res) => {
       "Informations météo manquantes ou invalides"
     );
     return res.status(400).json({ error: "Informations météo manquantes" });
+  }
+
+  const existingBulletin = weather.find(
+    (w) => w.zipCode === zipCode && w.weather === weatherType
+  );
+
+  if (existingBulletin) {
+    logger.warn(
+      { zipCode, weatherType, existingId: existingBulletin.id },
+      "Tentative de création d'un bulletin météo identique existant"
+    );
+    return res.status(409).json({
+      error: "Un bulletin météo identique existe déjà pour cette ville",
+    });
   }
 
   // Générer un nouvel ID pour le bulletin météo
@@ -245,4 +260,59 @@ routes.get("/weather", (_req, res) => {
   logger.info(`Liste de ${weather.length} bulletins météo récupérée`);
   res.json(weather);
 });
+
+// Middleware 405 pour /cities (seul GET autorisé)
+routes.all("/cities", (req, res) => {
+  logger.warn(
+    { method: req.method, path: req.path },
+    "Méthode HTTP non autorisée"
+  );
+  res.status(405).json({ error: "Méthode non autorisée" });
+});
+
+// Middleware 405 pour /cities/:zipCode (GET, PUT, DELETE autorisés)
+routes.all("/cities/:zipCode", (req, res) => {
+  logger.warn(
+    { method: req.method, path: req.path },
+    "Méthode HTTP non autorisée"
+  );
+  res.status(405).json({ error: "Méthode non autorisée" });
+});
+
+// Middleware 405 pour /cities/:zipCode/weather (GET, POST autorisés)
+routes.all("/cities/:zipCode/weather", (req, res) => {
+  logger.warn(
+    { method: req.method, path: req.path },
+    "Méthode HTTP non autorisée"
+  );
+  res.status(405).json({ error: "Méthode non autorisée" });
+});
+
+// Middleware 405 pour /cities/:zipCode/weather/:id (GET autorisé)
+routes.all("/cities/:zipCode/weather/:id", (req, res) => {
+  logger.warn(
+    { method: req.method, path: req.path },
+    "Méthode HTTP non autorisée"
+  );
+  res.status(405).json({ error: "Méthode non autorisée" });
+});
+
+// Middleware 405 pour /weather (seul GET autorisé)
+routes.all("/weather", (req, res) => {
+  logger.warn(
+    { method: req.method, path: req.path },
+    "Méthode HTTP non autorisée"
+  );
+  res.status(405).json({ error: "Méthode non autorisée" });
+});
+
+// Middleware 405 pour /weather/:id (GET, DELETE autorisés)
+routes.all("/weather/:id", (req, res) => {
+  logger.warn(
+    { method: req.method, path: req.path },
+    "Méthode HTTP non autorisée"
+  );
+  res.status(405).json({ error: "Méthode non autorisée" });
+});
+
 export default routes;
