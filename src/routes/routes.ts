@@ -92,4 +92,14 @@ routes.post("/cities/:zipCode/weather", (_req, res) => {
   res.status(201).json({ id: newId });
 });
 
+routes.delete("/weather/:id", (_req, res) => {
+    const id = Number(_req.params.id);
+    const weatherIndex = weather.findIndex((w) => w.id === id);
+    if (weatherIndex === -1) {
+        return res.status(404).json({ error: "Bulletin météo non trouvé" });
+    }
+    weather.splice(weatherIndex, 1);
+    res.status(204).send();
+})
+
 export default routes;

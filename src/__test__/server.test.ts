@@ -103,4 +103,15 @@ describe(app, () => {
 
     expect(response.status).toBe(400);
   });
+  it ("Devrait deleter un bulletin météo", async () => {
+      const response = await request(app).delete("/weather/1");
+
+      expect(response.status).toBe(204);
+      const responseCheck = await request(app).get("/weather/1");
+      expect(responseCheck.status).toBe(404);
+  });
+  it ("404 | Devrait retourner une erreur si suppression de bulletin météo inexistant", async () => {
+        const response = await request(app).delete("/weather/9999");
+        expect(response.status).toBe(404);
+  })
 });
