@@ -142,4 +142,9 @@ describe(app, () => {
 
         expect(response.status).toBe(404);
     });
+    it ("Devrait renvoyer tous les bulletins météo", async () => {
+        const response = await request(app).get("/weather");
+        expect(response.status).toBe(200);
+        expect(Array.isArray(response.body)).toBe(true);
+    })
 });

@@ -129,4 +129,7 @@ routes.get("/weather/:id", (_req, res) => {
     res.json(weatherBulletin);
 })
 
+routes.get("/weather", (_req, res) => {
+    res.json(weather);
+})
 export default routes;
