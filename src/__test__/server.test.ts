@@ -130,4 +130,16 @@ describe(app, () => {
         const response = await request(app).get("/cities/99999/weather/3");
         expect(response.status).toBe(404);
   })
+    it ("Devrait retourner un bulletin météo", async () => {
+        const response = await request(app).get("/weather/3");
+
+        expect(response.status).toBe(200);
+        expect(response.body).toHaveProperty("weather", "neige");
+        expect(response.body).toHaveProperty("id", 3)
+    });
+    it ("404 | Devrait retourner une erreur si bulletin météo inexistant", async () => {
+        const response = await request(app).get("/weather/9999");
+
+        expect(response.status).toBe(404);
+    });
 });

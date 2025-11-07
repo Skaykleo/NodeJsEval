@@ -120,5 +120,13 @@ routes.get("/cities/:zipCode/weather/:id", (_req, res) => {
         weather: weatherBulletin.weather,
     });
 })
+routes.get("/weather/:id", (_req, res) => {
+    const id = Number(_req.params.id);
+    const weatherBulletin = weather.find((w) => w.id === id);
+    if (!weatherBulletin) {
+        return res.status(404).json({ error: "Bulletin météo non trouvé" });
+    }
+    res.json(weatherBulletin);
+})
 
 export default routes;
