@@ -4,77 +4,103 @@ import request from "supertest";
 import app from "../server";
 
 beforeAll(async () => {
-    // Import dynamique du serveur
-    await import ("../server");
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+  // Import dynamique du serveur
+  await import("../server");
+  await new Promise((resolve) => setTimeout(resolve, 1000));
 
-    console.log("Serveur démarré pour les tests");
+  console.log("Serveur démarré pour les tests");
 }, 10000);
 
 describe(app, () => {
-    it("Devrait retourner le message d'accueil", async () => {
-        const response = await request(app).get("/");
+  it("Devrait retourner le message d'accueil", async () => {
+    const response = await request(app).get("/");
 
-        expect(response.status).toBe(200);
-        expect(response.text).toBe("Hello World !");
-    });
-    it ("Devrait retourner toutes les villes", async () => {
-        const response = await request(app).get("/cities");
+    expect(response.status).toBe(200);
+    expect(response.text).toBe("Hello World !");
+  });
+  it("Devrait retourner toutes les villes", async () => {
+    const response = await request(app).get("/cities");
 
-        expect(response.status).toBe(200);
-        expect(Array.isArray(response.body)).toBe(true);
-    })
-    it("Devrait retourner une ville par son code postal", async () => {
-        const response = await request(app).get("/cities/75000");
+    expect(response.status).toBe(200);
+    expect(Array.isArray(response.body)).toBe(true);
+  });
+  it("Devrait retourner une ville par son code postal", async () => {
+    const response = await request(app).get("/cities/75000");
 
-        expect(response.status).toBe(200);
-        expect(response.body).toHaveProperty("name", "Paris");
-    })
-    it("404 | Devrait retourner une erreur si mauvais code postal", async () => {
-        const response = await request(app).get("/cities/99999");
+    expect(response.status).toBe(200);
+    expect(response.body).toHaveProperty("name", "Paris");
+  });
+  it("404 | Devrait retourner une erreur si mauvais code postal", async () => {
+    const response = await request(app).get("/cities/99999");
 
-        expect(response.status).toBe(404);
-    })
-    it ("Devrait supprimer une ville par son code postal", async () => {
-        const response = await request(app).delete("/cities/69000");
+    expect(response.status).toBe(404);
+  });
+  it("Devrait supprimer une ville par son code postal", async () => {
+    const response = await request(app).delete("/cities/69000");
 
-        expect(response.status).toBe(204);
-        const responseCheck = await request(app).get("/cities/69000");
-        expect(responseCheck.status).toBe(404);
-    })
-    it("404 | Devrait retourner une erreur si suppression avec mauvais code postal", async () => {
-        const response = await request(app).delete("/cities/99999");
+    expect(response.status).toBe(204);
+    const responseCheck = await request(app).get("/cities/69000");
+    expect(responseCheck.status).toBe(404);
+  });
+  it("404 | Devrait retourner une erreur si suppression avec mauvais code postal", async () => {
+    const response = await request(app).delete("/cities/99999");
 
-        expect(response.status).toBe(404);
-    })
-    it("Devrait mettre à jour une ville par son code postal", async () => {
-        const response = await request(app).put("/cities/13000").send({ name: "Marseille Updated" });
+    expect(response.status).toBe(404);
+  });
+  it("Devrait mettre à jour une ville par son code postal", async () => {
+    const response = await request(app)
+      .put("/cities/13000")
+      .send({ name: "Marseille Updated" });
 
-        expect(response.status).toBe(200);
-        expect(response.body).toHaveProperty("name", "Marseille Updated");
-    })
-    it("404 | Devrait retourner une erreur si mise à jour avec mauvais code postal", async () => {
-        const response = await request(app).put("/cities/99999").send({ name: "Ville Inconnue" });
+    expect(response.status).toBe(200);
+    expect(response.body).toHaveProperty("name", "Marseille Updated");
+  });
+  it("404 | Devrait retourner une erreur si mise à jour avec mauvais code postal", async () => {
+    const response = await request(app)
+      .put("/cities/99999")
+      .send({ name: "Ville Inconnue" });
 
-        expect(response.status).toBe(404);
-    })
-    it ("Devrait retourner le bulletin météo d'une ville", async () => {
-        const response = await request(app).get("/cities/75000/weather");
+    expect(response.status).toBe(404);
+  });
+  it("Devrait retourner le bulletin météo d'une ville", async () => {
+    const response = await request(app).get("/cities/75000/weather");
 
-        expect(response.status).toBe(200);
-        expect(response.body).toHaveProperty("weather", "pluie");
-    })
-    it("404 | Devrait retourner une erreur si bulletin météo avec mauvais code postal", async () => {
-        const response = await request(app).get("/cities/99999/weather");
+    expect(response.status).toBe(200);
+    expect(response.body).toHaveProperty("weather", "pluie");
+  });
+  it("404 | Devrait retourner une erreur si bulletin météo avec mauvais code postal", async () => {
+    const response = await request(app).get("/cities/99999/weather");
 
-        expect(response.status).toBe(404);
-    })
-    it ("404 | Devrait retourner une erreur si bulletin météo introuvable", async () => {
-        const response = await request(app).get("/cities/31000/weather");
+    expect(response.status).toBe(404);
+  });
+  it("404 | Devrait retourner une erreur si bulletin météo introuvable", async () => {
+    const response = await request(app).get("/cities/31000/weather");
 
-        expect(response.status).toBe(404);
-    })
+    expect(response.status).toBe(404);
+  });
+  it("Devrait créer un nouveau bulletin météo", async () => {
+    const response = await request(app)
+      .post("/cities/31000/weather")
+      .send({ weather: "beau" });
 
+    expect(response.status).toBe(201);
+    expect(response.body).toHaveProperty("id");
+    expect(typeof response.body.id).toBe("number");
+  });
 
+  it("404 | Devrait retourner une erreur si création de bulletin pour ville inexistante", async () => {
+    const response = await request(app)
+      .post("/cities/99999/weather")
+      .send({ weather: "beau" });
+
+    expect(response.status).toBe(404);
+  });
+
+  it("400 | Devrait retourner une erreur si type de météo invalide", async () => {
+    const response = await request(app)
+      .post("/cities/31000/weather")
+      .send({ weather: "orage" });
+
+    expect(response.status).toBe(400);
+  });
 });
-
