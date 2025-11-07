@@ -40,10 +40,17 @@ export const cities: City[] = [
   { zipCode: "69000", name: "Lyon" },
   { zipCode: "13000", name: "Marseille" },
   { zipCode: "31000", name: "Toulouse" },
+  { zipCode: "21000", name: "Dijon" },
 ];
 
 export const weather: WeatherBulletin[] = [
   { id: 1, zipCode: "75000", townName: "Paris", weather: "pluie" },
+  { id: 4, zipCode: "75000", townName: "Paris", weather: "beau" },
+  { id: 5, zipCode: "75000", townName: "Paris", weather: "beau" },
+  { id: 9, zipCode: "75000", townName: "Paris", weather: "beau" },
+  { id: 6, zipCode: "75000", townName: "Paris", weather: "neige" },
+  { id: 7, zipCode: "75000", townName: "Paris", weather: "neige" },
+  { id: 8, zipCode: "75000", townName: "Paris", weather: "neige" },
   { id: 2, zipCode: "69000", townName: "Lyon", weather: "beau" },
   { id: 3, zipCode: "13000", townName: "Marseille", weather: "neige" },
 ];

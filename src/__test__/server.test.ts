@@ -1,7 +1,7 @@
-import { describe, it, expect, beforeAll, afterAll, afterEach } from "vitest";
+import { describe, it, expect, beforeAll, beforeEach } from "vitest";
 import request from "supertest";
 
-import app from "../server";
+import app, { cities, weather } from "../server";
 
 beforeAll(async () => {
   // Import dynamique du serveur
@@ -10,6 +10,29 @@ beforeAll(async () => {
 
   console.log("Serveur démarré pour les tests");
 }, 10000);
+
+// Fonction pour réinitialiser les données entre les tests
+const resetData = () => {
+  cities.length = 0;
+  cities.push(
+    { zipCode: "75000", name: "Paris" },
+    { zipCode: "69000", name: "Lyon" },
+    { zipCode: "13000", name: "Marseille" },
+    { zipCode: "31000", name: "Toulouse" },
+    { zipCode: "21000", name: "Dijon" }
+  );
+
+  weather.length = 0;
+  weather.push(
+    { id: 1, zipCode: "75000", townName: "Paris", weather: "pluie" },
+    { id: 2, zipCode: "69000", townName: "Lyon", weather: "beau" },
+    { id: 3, zipCode: "13000", townName: "Marseille", weather: "neige" }
+  );
+};
+
+beforeEach(() => {
+  resetData();
+});
 
 describe(app, () => {
   it("Devrait retourner le message d'accueil", async () => {
@@ -50,11 +73,64 @@ describe(app, () => {
     expect(response.body).toHaveProperty("name", "Marseille Updated");
   });
 
-  it("Devrait retourner le bulletin météo d'une ville", async () => {
+  it("Devrait retourner la météo la plus représentée d'une ville", async () => {
+    // Ajouter plusieurs bulletins pour Paris avec différentes météos
+    weather.push(
+      { id: 4, zipCode: "75000", townName: "Paris", weather: "beau" },
+      { id: 5, zipCode: "75000", townName: "Paris", weather: "beau" },
+      { id: 6, zipCode: "75000", townName: "Paris", weather: "neige" }
+    );
+
+    const response = await request(app).get("/cities/75000/weather");
+
+    expect(response.status).toBe(200);
+    expect(response.body).toHaveProperty("zipCode", "75000");
+    expect(response.body).toHaveProperty("name", "Paris");
+    expect(response.body).toHaveProperty("weather", "beau");
+  });
+
+  it("Devrait retourner le bulletin météo unique si un seul existe", async () => {
     const response = await request(app).get("/cities/75000/weather");
 
     expect(response.status).toBe(200);
     expect(response.body).toHaveProperty("weather", "pluie");
+  });
+
+  it("Devrait retourner 'beau' en cas d'égalité (optimisme)", async () => {
+    weather.push(
+      { id: 4, zipCode: "31000", townName: "Toulouse", weather: "pluie" },
+      { id: 5, zipCode: "31000", townName: "Toulouse", weather: "beau" }
+    );
+
+    const response = await request(app).get("/cities/31000/weather");
+
+    expect(response.status).toBe(200);
+    expect(response.body).toHaveProperty("weather", "beau");
+  });
+
+  it("Devrait retourner 'neige' en cas d'égalité avec pluie (optimisme)", async () => {
+    weather.push(
+      { id: 4, zipCode: "31000", townName: "Toulouse", weather: "pluie" },
+      { id: 5, zipCode: "31000", townName: "Toulouse", weather: "neige" }
+    );
+
+    const response = await request(app).get("/cities/31000/weather");
+
+    expect(response.status).toBe(200);
+    expect(response.body).toHaveProperty("weather", "neige");
+  });
+
+  it("Devrait retourner 'beau' en cas d'égalité triple (optimisme)", async () => {
+    weather.push(
+      { id: 4, zipCode: "31000", townName: "Toulouse", weather: "pluie" },
+      { id: 5, zipCode: "31000", townName: "Toulouse", weather: "beau" },
+      { id: 6, zipCode: "31000", townName: "Toulouse", weather: "neige" }
+    );
+
+    const response = await request(app).get("/cities/31000/weather");
+
+    expect(response.status).toBe(200);
+    expect(response.body).toHaveProperty("weather", "beau");
   });
 
   it("Devrait créer un nouveau bulletin météo", async () => {
@@ -152,7 +228,7 @@ describe(app, () => {
   });
 
   it("404 | Devrait retourner une erreur si bulletin météo introuvable", async () => {
-    const response = await request(app).get("/cities/31000/weather");
+    const response = await request(app).get("/cities/21000/weather");
 
     expect(response.status).toBe(404);
   });

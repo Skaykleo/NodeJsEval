@@ -72,19 +72,51 @@ routes.get("/cities/:zipCode/weather", (_req, res) => {
     return res.status(404).json({ error: "Ville non trouvée" });
   }
 
-  const weatherBulletin = weather.find((w) => w.zipCode === zipCode);
+  const cityWeatherBulletins = weather.filter((w) => w.zipCode === zipCode);
 
-  if (!weatherBulletin) {
-    logger.warn({ zipCode }, "Bulletin météo non trouvé pour cette ville");
+  if (cityWeatherBulletins.length === 0) {
+    logger.warn(
+      { zipCode, cityName: city.name },
+      "Aucun bulletin météo pour cette ville"
+    );
     return res
       .status(404)
       .json({ error: "Bulletin météo non trouvé pour cette ville" });
   }
 
+  const weatherCount: Record<string, number> = {};
+  for (const bulletin of cityWeatherBulletins) {
+    weatherCount[bulletin.weather] = (weatherCount[bulletin.weather] || 0) + 1;
+  }
+
+  const maxCount = Math.max(...Object.values(weatherCount));
+
+  const mostCommonWeathers = Object.entries(weatherCount)
+    .filter(([_, count]) => count === maxCount)
+    .map(([weather, _]) => weather);
+
+  // Ordre de priorité optimiste : beau > neige > pluie
+  const priorityOrder = ["beau", "neige", "pluie"];
+  mostCommonWeathers.sort((a, b) => {
+    return priorityOrder.indexOf(a) - priorityOrder.indexOf(b);
+  });
+  const mostCommonWeather = mostCommonWeathers[0];
+
+  logger.info(
+    {
+      zipCode,
+      cityName: city.name,
+      weather: mostCommonWeather,
+      totalBulletins: cityWeatherBulletins.length,
+      weatherCount,
+    },
+    "Météo dominante récupérée (ordre optimiste en cas d'égalité)"
+  );
+
   res.json({
     zipCode: zipCode,
     name: city.name,
-    weather: weatherBulletin.weather,
+    weather: mostCommonWeather,
   });
 });
 
