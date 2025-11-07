@@ -113,5 +113,21 @@ describe(app, () => {
   it ("404 | Devrait retourner une erreur si suppression de bulletin météo inexistant", async () => {
         const response = await request(app).delete("/weather/9999");
         expect(response.status).toBe(404);
+    });
+  it ("Devrait donner les détails d'un bulletin météo spécifique d'une ville", async () => {
+        const response = await request(app).get("/cities/13000/weather/3");
+        expect(response.status).toBe(200);
+        expect(response.body).toHaveProperty("weather", "neige");
+        expect(response.body).toHaveProperty("zipCode", "13000");
+        expect(response.body).toHaveProperty("id", 3);
+
+    });
+  it ("404 | Devrait retourner une erreur si bulletin météo spécifique inexistant", async () => {
+        const response = await request(app).get("/cities/13000/weather/9999");
+        expect(response.status).toBe(404);
+    });
+  it ("404 | Devrait retourner une erreur si ville pour bulletin météo spécifique inexistant", async () => {
+        const response = await request(app).get("/cities/99999/weather/3");
+        expect(response.status).toBe(404);
   })
 });

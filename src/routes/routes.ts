@@ -102,4 +102,23 @@ routes.delete("/weather/:id", (_req, res) => {
     res.status(204).send();
 })
 
+routes.get("/cities/:zipCode/weather/:id", (_req, res) => {
+    const zipCode = _req.params.zipCode;
+    const id = Number(_req.params.id);
+    const city = cities.find((c) => c.zipCode === zipCode);
+    if (!city) {
+        return res.status(404).json({ error: "Ville non trouvée" });
+    }
+    const weatherBulletin = weather.find((w) => w.zipCode === zipCode && w.id === id);
+    if (!weatherBulletin) {
+        return res.status(404).json({ error: "Bulletin météo non trouvé pour cette ville" });
+    }
+    res.json({
+        id :  weatherBulletin.id,
+        zipCode: zipCode,
+        townName: city.name,
+        weather: weatherBulletin.weather,
+    });
+})
+
 export default routes;
