@@ -1,5 +1,8 @@
 node_modules/
+dist/
+.npm/
 .idea/
 .vscode/
 logs/
+coverage/
 *.log

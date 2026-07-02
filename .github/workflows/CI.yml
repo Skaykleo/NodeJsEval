@@ -1,62 +1,95 @@
-name: Tests CI
+name: CI/CD
 
-# Déclencher le workflow
 on:
   push:
-    branches: [main, master, develop]
   pull_request:
-    branches: [main, master, develop]
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  NODE_VERSION: 22.x
 
 jobs:
-  lint:
-    name: Lint Code
+  test:
+    name: Tests automatises
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Récupérer le code
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 2. Installer Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 22.x
-          cache: "npm"
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
 
-      # 3. Installer les dépendances
       - name: Install dependencies
         run: npm ci
 
-      # 4. Lancer le linter
       - name: Run ESLint
         run: npm run lint
 
-  test:
-    name: Run Tests
-    runs-on: ubuntu-latest
-    needs: lint # Les tests ne s'exécutent que si le linting réussit
+      - name: Run Vitest and Supertest
+        run: npm run test:run
 
-    strategy:
-      matrix:
-        node-version: [22.x, 24.x, 25.x]
+  build-and-publish:
+    name: Build and publish Docker image
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.event_name == 'push'
 
     steps:
-      # 1. Récupérer le code
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 2. Installer Node.js
-      - name: Setup Node.js ${{ matrix.node-version }}
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node-version }}
-          cache: "npm"
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
 
-      # 3. Installer les dépendances
       - name: Install dependencies
         run: npm ci
 
-      # 4. Lancer les tests
-      - name: Lancer les tests
-        run: npm run test:run
+      - name: Build TypeScript application
+        run: npm run build
+
+      - name: Login to GitHub Container Registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+      - name: Prepare Docker tags
+        id: docker-meta
+        shell: bash
+        run: |
+          image_name="ghcr.io/${GITHUB_REPOSITORY,,}"
+          ref_tag="$(echo "${GITHUB_REF_NAME}" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9_.-]+/-/g' | sed -E 's/^-+|-+$//g')"
+          short_sha="${GITHUB_SHA::7}"
+
+          echo "image_name=$image_name" >> "$GITHUB_OUTPUT"
+          echo "ref_tag=$ref_tag" >> "$GITHUB_OUTPUT"
+          echo "short_sha=$short_sha" >> "$GITHUB_OUTPUT"
+
+      - name: Build Docker image
+        run: |
+          docker build --pull \
+            -t "${{ steps.docker-meta.outputs.image_name }}:${{ steps.docker-meta.outputs.short_sha }}" \
+            -t "${{ steps.docker-meta.outputs.image_name }}:${{ steps.docker-meta.outputs.ref_tag }}" \
+            .
+
+      - name: Publish Docker image
+        env:
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          IMAGE_NAME: ${{ steps.docker-meta.outputs.image_name }}
+          REF_TAG: ${{ steps.docker-meta.outputs.ref_tag }}
+          SHORT_SHA: ${{ steps.docker-meta.outputs.short_sha }}
+        run: |
+          docker push "$IMAGE_NAME:$SHORT_SHA"
+          docker push "$IMAGE_NAME:$REF_TAG"
+
+          if [ "$GITHUB_REF_NAME" = "$DEFAULT_BRANCH" ]; then
+            docker tag "$IMAGE_NAME:$SHORT_SHA" "$IMAGE_NAME:latest"
+            docker push "$IMAGE_NAME:latest"
+          fi

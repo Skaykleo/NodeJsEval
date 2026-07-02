@@ -65,7 +65,7 @@ app.use(
     err: Error,
     req: express.Request,
     res: express.Response,
-    next: express.NextFunction
+    _next: express.NextFunction
   ) => {
     logger.error(
       { err, req: { method: req.method, url: req.url } },
